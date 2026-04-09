@@ -359,9 +359,9 @@ GET    /api/dashboard            # → сводка: сколько UP/DOWN/DEGR
 
 - [ ] API Verticle: маршруты, JWT-авторизация, DTO-маппинг
   - [v] `UserRepository` port + `ExposedUserRepository` (findByEmail, save, хэш пароля)
-  - [ ] DTO-классы: `LoginRequest`, `RegisterRequest`, `AuthResponse`, `UrlRequest`, `UrlResponse`, `CheckResultResponse` (`@Serializable`)
+  - [v] DTO-классы: `LoginRequest`, `RegisterRequest`, `AuthResponse`, `UrlRequest`, `UrlResponse`, `CheckResultResponse` (`@Serializable`)
   - [v] Auth endpoints: `POST /api/auth/register` + `POST /api/auth/login` (генерация JWT через `vertx-auth-jwt`)
-  - [ ] JWT middleware: `router.route("/api/*").handler(jwtHandler)`, извлечение `UserId` в `ctx`
+  - [v] JWT middleware: `router.route("/api/*").handler(jwtHandler)`, извлечение `UserId` в `ctx`
   - [ ] URL CRUD: `GET /api/urls`, `POST /api/urls`, `GET /api/urls/{id}`, `DELETE /api/urls/{id}` → `MonitoringService`
   - [ ] History: `GET /api/urls/{id}/history` с `limit`/`offset` из query params
   - [ ] DI: передать `MonitoringService`, `UserRepository`, `JWTAuth` в `ApiVerticle` через конструктор; задеплоить из `Main.kt`

@@ -1,14 +1,17 @@
 package com.linkpulse.monitor
 
+import com.linkpulse.domain.model.UserId
 import com.linkpulse.domain.port.auth.UserLoginer
 import com.linkpulse.domain.port.auth.UserRegistrar
 import com.linkpulse.monitor.adapter.input.http.AuthHandler
+import com.linkpulse.monitor.adapter.input.http.putUserId
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
+import io.vertx.ext.web.handler.JWTAuthHandler
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.coroutines.coAwait
 import org.koin.core.component.KoinComponent
@@ -34,10 +37,18 @@ class ApiVerticle : CoroutineVerticle(), KoinComponent {
                 .end("""{"status":"UP"}""")
         }
 
-        // ── Auth ──
+        // ── Auth (публичные маршруты — до JWT middleware) ──
         val authHandler = AuthHandler(userRegistrar, userLoginer, jwtAuth, this)
         router.post("/api/auth/register").handler(authHandler::register)
         router.post("/api/auth/login").handler(authHandler::login)
+
+        // ── JWT middleware (защищает все /api/* маршруты ниже) ──
+        router.route("/api/*")
+            .handler(JWTAuthHandler.create(jwtAuth))
+            .handler { ctx ->
+                ctx.putUserId(UserId(ctx.user()!!.principal().getString("sub").toLong()))
+                ctx.next()
+            }
 
         // ── API routes ──
         router.get("/api/urls").handler { ctx ->
@@ -45,9 +56,10 @@ class ApiVerticle : CoroutineVerticle(), KoinComponent {
 
             for (route in router.routes) {
                 val path = route.path
-                if (path != null && route.methods().isNotEmpty()) {
+                val methods = route?.methods()
+                if (path != null && !methods.isNullOrEmpty()) {
                     val methodsArray = JsonArray()
-                    for (method in route.methods()) {
+                    for (method in methods) {
                         methodsArray.add(method.name())
                     }
 

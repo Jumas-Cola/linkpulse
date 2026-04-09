@@ -3,8 +3,7 @@ package com.linkpulse.monitor.adapter.input.http.dto.response
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AuthResponse(
+data class RegisterResponse(
     val userId: String,
-    val username: String,
-    val token: String,
+    val username: String
 )
