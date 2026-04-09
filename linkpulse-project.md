@@ -347,17 +347,24 @@ GET    /api/dashboard            # → сводка: сколько UP/DOWN/DEGR
 
 ### Неделя 1 — Фундамент
 
-- [V] Инициализировать Gradle multi-module проект (`domain`, `monitor-service`, `notification-service`)
-- [V] Domain-слой: модели, value objects, sealed events, интерфейсы портов
-- [V] `MonitoringService` — use case для CRUD URL (unit-тесты без БД)
-- [V] `CheckOrchestrator` — use case проверки (unit-тесты с мок-`HealthChecker`)
-- [V] Docker Compose: PostgreSQL
-- [V] Flyway-миграции для таблиц `users`, `monitored_urls`, `check_results`
-- [V] `ExposedUrlRepository` + `ExposedCheckResultRepository` — реализация портов
+- [v] Инициализировать Gradle multi-module проект (`domain`, `monitor-service`, `notification-service`)
+- [v] Domain-слой: модели, value objects, sealed events, интерфейсы портов
+- [v] `MonitoringService` — use case для CRUD URL (unit-тесты без БД)
+- [v] `CheckOrchestrator` — use case проверки (unit-тесты с мок-`HealthChecker`)
+- [v] Docker Compose: PostgreSQL
+- [v] Flyway-миграции для таблиц `users`, `monitored_urls`, `check_results`
+- [v] `ExposedUrlRepository` + `ExposedCheckResultRepository` — реализация портов
 
 ### Неделя 2 — HTTP-слой и планировщик
 
 - [ ] API Verticle: маршруты, JWT-авторизация, DTO-маппинг
+  - [v] `UserRepository` port + `ExposedUserRepository` (findByEmail, save, хэш пароля)
+  - [ ] DTO-классы: `LoginRequest`, `RegisterRequest`, `AuthResponse`, `UrlRequest`, `UrlResponse`, `CheckResultResponse` (`@Serializable`)
+  - [v] Auth endpoints: `POST /api/auth/register` + `POST /api/auth/login` (генерация JWT через `vertx-auth-jwt`)
+  - [ ] JWT middleware: `router.route("/api/*").handler(jwtHandler)`, извлечение `UserId` в `ctx`
+  - [ ] URL CRUD: `GET /api/urls`, `POST /api/urls`, `GET /api/urls/{id}`, `DELETE /api/urls/{id}` → `MonitoringService`
+  - [ ] History: `GET /api/urls/{id}/history` с `limit`/`offset` из query params
+  - [ ] DI: передать `MonitoringService`, `UserRepository`, `JWTAuth` в `ApiVerticle` через конструктор; задеплоить из `Main.kt`
 - [ ] `VertxHealthChecker` — реализация на WebClient с корутинами
 - [ ] `CheckSchedulerVerticle` — периодический запуск проверок
 - [ ] OpenAPI-спецификация (ручная или через `vertx-web-openapi`)

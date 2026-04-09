@@ -1,18 +1,31 @@
 package com.linkpulse.monitor
 
+import com.linkpulse.domain.port.auth.UserLoginer
+import com.linkpulse.domain.port.auth.UserRegistrar
+import com.linkpulse.monitor.adapter.input.http.AuthHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.web.Router
+import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.coroutines.coAwait
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 private val logger = KotlinLogging.logger {}
 
-class ApiVerticle : CoroutineVerticle() {
+class ApiVerticle : CoroutineVerticle(), KoinComponent {
+
+    private val userRegistrar: UserRegistrar by inject()
+    private val userLoginer: UserLoginer by inject()
+    private val jwtAuth: JWTAuth by inject()
 
     override suspend fun start() {
         val router = Router.router(vertx)
+
+        router.route().handler(BodyHandler.create())
 
         // ── Health check ──
         router.get("/health").handler { ctx ->
@@ -20,6 +33,11 @@ class ApiVerticle : CoroutineVerticle() {
                 .putHeader("Content-Type", "application/json")
                 .end("""{"status":"UP"}""")
         }
+
+        // ── Auth ──
+        val authHandler = AuthHandler(userRegistrar, userLoginer, jwtAuth, this)
+        router.post("/api/auth/register").handler(authHandler::register)
+        router.post("/api/auth/login").handler(authHandler::login)
 
         // ── API routes ──
         router.get("/api/urls").handler { ctx ->

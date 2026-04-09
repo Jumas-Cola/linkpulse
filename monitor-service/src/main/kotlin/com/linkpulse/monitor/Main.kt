@@ -1,5 +1,8 @@
 package com.linkpulse.monitor
 
+import com.linkpulse.monitor.di.appModule
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.config.ConfigRetriever
 import io.vertx.config.ConfigRetrieverOptions
@@ -7,8 +10,14 @@ import io.vertx.config.ConfigStoreOptions
 import io.vertx.core.Vertx
 import io.vertx.core.VertxOptions
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.auth.PubSecKeyOptions
+import io.vertx.ext.auth.jwt.JWTAuth
+import io.vertx.ext.auth.jwt.JWTAuthOptions
 import io.vertx.kotlin.coroutines.coAwait
 import org.flywaydb.core.Flyway
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.koin.core.context.startKoin
+import org.koin.dsl.module
 
 private val logger = KotlinLogging.logger {}
 
@@ -41,7 +50,28 @@ suspend fun main() {
         val dbPassword = config.getJsonObject("database")?.getString("password")
 
         runMigrations(dbUrl, dbUser, dbPassword)
-        // TODO: задеплоить ApiVerticle, CheckSchedulerVerticle
+
+        val poolSize = config.getJsonObject("database")?.getJsonObject("pool")?.getInteger("maxSize") ?: 10
+        val hikari = HikariDataSource(HikariConfig().apply {
+            jdbcUrl = dbUrl
+            username = dbUser
+            password = dbPassword
+            maximumPoolSize = poolSize
+            driverClassName = "org.postgresql.Driver"
+        })
+        Database.connect(hikari)
+
+        val jwtSecret = config.getJsonObject("jwt")?.getString("secret") ?: "dev-secret"
+        val jwtAuth = JWTAuth.create(vertx, JWTAuthOptions()
+            .addPubSecKey(PubSecKeyOptions()
+                .setAlgorithm("HS256")
+                .setBuffer(jwtSecret)
+            )
+        )
+
+        startKoin { modules(appModule, module { single { jwtAuth } }) }
+
+        // TODO: задеплоить CheckSchedulerVerticle
         vertx.deployVerticle(ApiVerticle()).coAwait()
         logger.info { "✅ monitor-service started on port 8080" }
     } catch (e: Exception) {

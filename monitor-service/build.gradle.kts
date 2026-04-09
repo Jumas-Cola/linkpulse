@@ -33,6 +33,12 @@ dependencies {
     // ── Сериализация ──
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${property("serializationVersion")}")
 
+    // ── DI ──
+    implementation("io.insert-koin:koin-core:${property("koinVersion")}")
+
+    // ── Хэширование паролей ──
+    implementation("at.favre.lib:bcrypt:${property("bcryptVersion")}")
+
     // ── База данных ──
     implementation("org.jetbrains.exposed:exposed-core:${property("exposedVersion")}")
     implementation("org.jetbrains.exposed:exposed-jdbc:${property("exposedVersion")}")
