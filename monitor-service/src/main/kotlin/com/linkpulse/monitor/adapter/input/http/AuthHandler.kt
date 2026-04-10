@@ -28,7 +28,7 @@ class AuthHandler(
                     ctx.body().asString() ?: throw IllegalArgumentException("Request body is missing")
                 )
                 val user = userRegistrar.register(req.username, req.password)
-                ctx.sendJson(201, RegisterResponse(user.id.value.toString(), user.username))
+                ctx.sendJson(201, RegisterResponse(user.id!!.value.toString(), user.username))
             } catch (e: SerializationException) {
                 ctx.sendJson(400, errorBody("Invalid JSON body"))
             } catch (e: IllegalArgumentException) {
@@ -47,10 +47,10 @@ class AuthHandler(
                 )
                 val user = userLoginer.login(req.username, req.password)
                 val token = jwtAuth.generateToken(
-                    JsonObject().put("sub", user.id.value.toString()).put("username", user.username),
+                    JsonObject().put("sub", user.id!!.value.toString()).put("username", user.username),
                     JWT_OPTIONS
                 )
-                ctx.sendJson(200, AuthResponse(user.id.value.toString(), user.username, token))
+                ctx.sendJson(200, AuthResponse(user.id!!.value.toString(), user.username, token))
             } catch (e: SerializationException) {
                 ctx.sendJson(400, errorBody("Invalid JSON body"))
             } catch (e: IllegalArgumentException) {

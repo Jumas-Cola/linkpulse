@@ -38,7 +38,6 @@ class ExposedCheckResultRepositoryTest : FunSpec({
     suspend fun createUrl(ownerId: Long): MonitoredUrl =
         urlRepo.save(
             MonitoredUrl(
-                id = UrlId(0),
                 url = "https://example.com",
                 name = "Test",
                 intervalSeconds = 60,
@@ -55,9 +54,9 @@ class ExposedCheckResultRepositoryTest : FunSpec({
 
     test("save persists check result") {
         val url = createUrl(createUser())
-        repo.save(url.id, result(httpStatus = 200, latencyMs = 150))
+        repo.save(url.id!!, result(httpStatus = 200, latencyMs = 150))
 
-        val results = repo.findByUrlId(url.id)
+        val results = repo.findByUrlId(url.id!!)
         results.shouldHaveSize(1)
         results.first().httpStatus shouldBe 200
         results.first().latencyMs shouldBe 150
@@ -65,9 +64,9 @@ class ExposedCheckResultRepositoryTest : FunSpec({
 
     test("save persists error result") {
         val url = createUrl(createUser())
-        repo.save(url.id, CheckResult(httpStatus = null, latencyMs = 0, error = "timeout"))
+        repo.save(url.id!!, CheckResult(httpStatus = null, latencyMs = 0, error = "timeout"))
 
-        val results = repo.findByUrlId(url.id)
+        val results = repo.findByUrlId(url.id!!)
         results.shouldHaveSize(1)
         results.first().error shouldBe "timeout"
     }
@@ -75,11 +74,11 @@ class ExposedCheckResultRepositoryTest : FunSpec({
     test("findByUrlId returns results ordered by checkedAt DESC") {
         val url = createUrl(createUser())
         val now = Clock.System.now()
-        repo.save(url.id, result(checkedAt = now - 2.hours))
-        repo.save(url.id, result(checkedAt = now - 1.hours))
-        repo.save(url.id, result(checkedAt = now))
+        repo.save(url.id!!, result(checkedAt = now - 2.hours))
+        repo.save(url.id!!, result(checkedAt = now - 1.hours))
+        repo.save(url.id!!, result(checkedAt = now))
 
-        val results = repo.findByUrlId(url.id)
+        val results = repo.findByUrlId(url.id!!)
         results.shouldHaveSize(3)
         (results[0].checkedAt > results[1].checkedAt) shouldBe true
         (results[1].checkedAt > results[2].checkedAt) shouldBe true
@@ -87,15 +86,15 @@ class ExposedCheckResultRepositoryTest : FunSpec({
 
     test("findByUrlId respects limit") {
         val url = createUrl(createUser())
-        repeat(5) { repo.save(url.id, result()) }
+        repeat(5) { repo.save(url.id!!, result()) }
 
-        repo.findByUrlId(url.id, limit = 3).shouldHaveSize(3)
+        repo.findByUrlId(url.id!!, limit = 3).shouldHaveSize(3)
     }
 
     test("findByUrlId respects offset") {
         val url = createUrl(createUser())
-        repeat(5) { repo.save(url.id, result()) }
+        repeat(5) { repo.save(url.id!!, result()) }
 
-        repo.findByUrlId(url.id, limit = 10, offset = 3).shouldHaveSize(2)
+        repo.findByUrlId(url.id!!, limit = 10, offset = 3).shouldHaveSize(2)
     }
 })

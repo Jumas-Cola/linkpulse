@@ -35,7 +35,6 @@ class ExposedUrlRepositoryTest : FunSpec({
 
     fun url(ownerId: Long, url: String = "https://example.com", status: UrlStatus = UrlStatus.UNKNOWN) =
         MonitoredUrl(
-            id = UrlId(0),
             url = url,
             name = "Test",
             intervalSeconds = 60,
@@ -49,14 +48,15 @@ class ExposedUrlRepositoryTest : FunSpec({
 
     test("save inserts new url and assigns generated id") {
         val saved = repo.save(url(createUser()))
-        saved.id.value shouldNotBe 0L
+        saved.id.shouldNotBeNull()
+        saved.id!!.value shouldNotBe 0L
     }
 
     test("findById returns saved url") {
         val ownerId = createUser()
         val saved = repo.save(url(ownerId, "https://example.com"))
 
-        val found = repo.findById(saved.id)
+        val found = repo.findById(saved.id!!)
         found.shouldNotBeNull()
         found.url shouldBe "https://example.com"
         found.owner shouldBe UserId(ownerId)
@@ -86,14 +86,14 @@ class ExposedUrlRepositoryTest : FunSpec({
         val updated = saved.copy(currentStatus = UrlStatus.DOWN, consecutiveFailures = 3)
         repo.save(updated)
 
-        val found = repo.findById(saved.id)!!
+        val found = repo.findById(saved.id!!)!!
         found.currentStatus shouldBe UrlStatus.DOWN
         found.consecutiveFailures shouldBe 3
     }
 
     test("delete removes url") {
         val saved = repo.save(url(createUser()))
-        repo.delete(saved.id)
-        repo.findById(saved.id).shouldBeNull()
+        repo.delete(saved.id!!)
+        repo.findById(saved.id!!).shouldBeNull()
     }
 })

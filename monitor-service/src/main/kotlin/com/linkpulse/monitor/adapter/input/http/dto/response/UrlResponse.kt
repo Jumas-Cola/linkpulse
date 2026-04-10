@@ -15,7 +15,7 @@ data class UrlResponse(
 ) {
     companion object {
         fun from(domain: MonitoredUrl) = UrlResponse(
-            id = domain.id.value,
+            id = domain.id!!.value,
             url = domain.url,
             name = domain.name,
             intervalSeconds = domain.intervalSeconds,

@@ -41,7 +41,7 @@ class CheckOrchestrator(
             )
         }
 
-        resultRepo.save(url.id, result)
+        resultRepo.save(url.id!!, result)
 
         val (updated, event) = url.applyCheck(result)
         urlRepo.save(updated)

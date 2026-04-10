@@ -1,13 +1,13 @@
 package com.linkpulse.monitor
 
 import com.linkpulse.domain.model.UserId
+import com.linkpulse.domain.port.UrlRepository
 import com.linkpulse.domain.port.auth.UserLoginer
 import com.linkpulse.domain.port.auth.UserRegistrar
 import com.linkpulse.monitor.adapter.input.http.AuthHandler
+import com.linkpulse.monitor.adapter.input.http.UrlsHandler
 import com.linkpulse.monitor.adapter.input.http.putUserId
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.vertx.core.json.JsonArray
-import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
@@ -24,6 +24,7 @@ class ApiVerticle : CoroutineVerticle(), KoinComponent {
     private val userRegistrar: UserRegistrar by inject()
     private val userLoginer: UserLoginer by inject()
     private val jwtAuth: JWTAuth by inject()
+    private val urlRepository: UrlRepository by inject()
 
     override suspend fun start() {
         val router = Router.router(vertx)
@@ -50,35 +51,12 @@ class ApiVerticle : CoroutineVerticle(), KoinComponent {
                 ctx.next()
             }
 
-        // ── API routes ──
-        router.get("/api/urls").handler { ctx ->
-            val endpointsArray = JsonArray()
-
-            for (route in router.routes) {
-                val path = route.path
-                val methods = route?.methods()
-                if (path != null && !methods.isNullOrEmpty()) {
-                    val methodsArray = JsonArray()
-                    for (method in methods) {
-                        methodsArray.add(method.name())
-                    }
-
-                    val endpointObj = JsonObject()
-                    endpointObj.put("methods", methodsArray)
-                    endpointObj.put("path", path)
-
-                    endpointsArray.add(endpointObj)
-                }
-            }
-
-            val resultObj = JsonObject()
-            resultObj.put("endpoints", endpointsArray)
-            resultObj.put("total", endpointsArray.size())
-
-            ctx.response()
-                .putHeader("Content-Type", "application/json")
-                .end(resultObj.encode())
-        }
+        // ── URL routes ──
+        val urlsHandler = UrlsHandler(urlRepository, this)
+        router.post("/api/urls").handler(urlsHandler::createUrl)
+        router.get("/api/urls").handler(urlsHandler::listUrls)
+        router.get("/api/urls/:id").handler(urlsHandler::getUrl)
+        router.delete("/api/urls/:id").handler(urlsHandler::deleteUrl)
 
         vertx.createHttpServer()
             .requestHandler(router)

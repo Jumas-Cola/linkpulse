@@ -7,7 +7,7 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 data class MonitoredUrl(
-    val id: UrlId,
+    val id: UrlId? = null,
     val url: String,
     val name: String,
     val intervalSeconds: Int,
@@ -26,8 +26,8 @@ data class MonitoredUrl(
     }
 
     private fun detectTransition(old: UrlStatus, new: UrlStatus): DomainEvent? = when {
-        old == UrlStatus.UP && new == UrlStatus.DOWN   -> UrlWentDown(id.value, url, Clock.System.now())
-        old == UrlStatus.DOWN && new == UrlStatus.UP   -> UrlRecovered(id.value, url, Clock.System.now())
+        old == UrlStatus.UP && new == UrlStatus.DOWN   -> UrlWentDown(id!!.value, url, Clock.System.now())
+        old == UrlStatus.DOWN && new == UrlStatus.UP   -> UrlRecovered(id!!.value, url, Clock.System.now())
         else -> null
     }
 }

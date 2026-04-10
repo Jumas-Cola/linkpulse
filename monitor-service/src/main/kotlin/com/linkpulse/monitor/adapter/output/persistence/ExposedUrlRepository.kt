@@ -40,7 +40,7 @@ class ExposedUrlRepository : AbstractRepository(), UrlRepository {
 
     override suspend fun save(url: MonitoredUrl): MonitoredUrl =
         dbQuery {
-            if (url.id.value == 0L) {
+            if (url.id == null) {
                 val newId = MonitoredUrlsTable.insert {
                     it[this.url] = url.url
                     it[name] = url.name
@@ -51,7 +51,7 @@ class ExposedUrlRepository : AbstractRepository(), UrlRepository {
                 }[MonitoredUrlsTable.id]
                 url.copy(id = UrlId(newId.value))
             } else {
-                MonitoredUrlsTable.update({ MonitoredUrlsTable.id eq url.id.value }) {
+                MonitoredUrlsTable.update({ MonitoredUrlsTable.id eq url.id!!.value }) {
                     it[currentStatus] = url.currentStatus.name
                     it[consecutiveFailures] = url.consecutiveFailures
                 }

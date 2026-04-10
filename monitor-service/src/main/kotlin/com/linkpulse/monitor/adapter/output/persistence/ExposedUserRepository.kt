@@ -32,14 +32,14 @@ class ExposedUserRepository : AbstractRepository(), UserRepository {
 
     override suspend fun save(user: User): User =
         dbQuery {
-            if (user.id.value == 0L) {
+            if (user.id == null) {
                 val newId = UsersTable.insert {
                     it[this.username] = user.username
                     it[this.password] = user.password.value
                 }[UsersTable.id]
                 user.copy(id = UserId(newId.value))
             } else {
-                UsersTable.update({ UsersTable.id eq user.id.value }) {
+                UsersTable.update({ UsersTable.id eq user.id!!.value }) {
                     it[UsersTable.username] = user.username
                     it[UsersTable.password] = user.password.value
                 }
