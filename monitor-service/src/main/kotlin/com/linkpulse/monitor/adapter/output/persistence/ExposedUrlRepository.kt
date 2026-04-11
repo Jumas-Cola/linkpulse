@@ -8,6 +8,7 @@ import com.linkpulse.domain.port.UrlRepository
 import com.linkpulse.monitor.adapter.output.persistence.tables.MonitoredUrlsTable
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -23,11 +24,23 @@ class ExposedUrlRepository : AbstractRepository(), UrlRepository {
                 ?.toDomain()
         }
 
-    override suspend fun findByOwner(owner: UserId): List<MonitoredUrl> =
+    override suspend fun findByIdAndOwner(id: UrlId, ownerId: UserId): MonitoredUrl? =
         dbQuery {
             MonitoredUrlsTable
                 .selectAll()
-                .where { MonitoredUrlsTable.ownerId eq owner.value }
+                .where {
+                    (MonitoredUrlsTable.id eq id.value)
+                        .and(MonitoredUrlsTable.ownerId eq ownerId.value)
+                }
+                .singleOrNull()
+                ?.toDomain()
+        }
+
+    override suspend fun findByOwner(ownerId: UserId): List<MonitoredUrl> =
+        dbQuery {
+            MonitoredUrlsTable
+                .selectAll()
+                .where { MonitoredUrlsTable.ownerId eq ownerId.value }
                 .map { it.toDomain() }
         }
 

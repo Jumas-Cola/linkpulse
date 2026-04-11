@@ -53,10 +53,10 @@ class ApiVerticle : CoroutineVerticle(), KoinComponent {
 
         // ── URL routes ──
         val urlsHandler = UrlsHandler(urlRepository, this)
-        router.post("/api/urls").handler(urlsHandler::createUrl)
+        router.get("/api/urls/:urlId").handler(urlsHandler::getUrl)
+        router.delete("/api/urls/:urlId").handler(urlsHandler::deleteUrl)
         router.get("/api/urls").handler(urlsHandler::listUrls)
-        router.get("/api/urls/:id").handler(urlsHandler::getUrl)
-        router.delete("/api/urls/:id").handler(urlsHandler::deleteUrl)
+        router.post("/api/urls").handler(urlsHandler::createUrl)
 
         vertx.createHttpServer()
             .requestHandler(router)
