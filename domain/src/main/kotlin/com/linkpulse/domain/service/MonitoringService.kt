@@ -16,7 +16,6 @@ class MonitoringService(
             "Interval must be between 10 and 3600 seconds"
         }
         val entity = MonitoredUrl(
-            id = UrlId(0), // будет назначен БД
             url = url,
             name = name.ifBlank { url },
             intervalSeconds = intervalSeconds,

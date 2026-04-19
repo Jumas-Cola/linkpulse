@@ -357,14 +357,14 @@ GET    /api/dashboard            # → сводка: сколько UP/DOWN/DEGR
 
 ### Неделя 2 — HTTP-слой и планировщик
 
-- [ ] API Verticle: маршруты, JWT-авторизация, DTO-маппинг
+- [v] API Verticle: маршруты, JWT-авторизация, DTO-маппинг
   - [v] `UserRepository` port + `ExposedUserRepository` (findByEmail, save, хэш пароля)
   - [v] DTO-классы: `LoginRequest`, `RegisterRequest`, `AuthResponse`, `UrlRequest`, `UrlResponse`, `CheckResultResponse` (`@Serializable`)
   - [v] Auth endpoints: `POST /api/auth/register` + `POST /api/auth/login` (генерация JWT через `vertx-auth-jwt`)
   - [v] JWT middleware: `router.route("/api/*").handler(jwtHandler)`, извлечение `UserId` в `ctx`
-  - [ ] URL CRUD: `GET /api/urls`, `POST /api/urls`, `GET /api/urls/{id}`, `DELETE /api/urls/{id}` → `MonitoringService`
-  - [ ] History: `GET /api/urls/{id}/history` с `limit`/`offset` из query params
-  - [ ] DI: передать `MonitoringService`, `UserRepository`, `JWTAuth` в `ApiVerticle` через конструктор; задеплоить из `Main.kt`
+  - [v] URL CRUD: `GET /api/urls`, `POST /api/urls`, `GET /api/urls/{id}`, `DELETE /api/urls/{id}` → `MonitoringService`
+  - [v] History: `GET /api/urls/{id}/history` с `limit`/`offset` из query params
+  - [v] DI: передать `MonitoringService`, `UserRepository`, `JWTAuth` в `ApiVerticle` через конструктор; задеплоить из `Main.kt`
 - [ ] `VertxHealthChecker` — реализация на WebClient с корутинами
 - [ ] `CheckSchedulerVerticle` — периодический запуск проверок
 - [ ] OpenAPI-спецификация (ручная или через `vertx-web-openapi`)
