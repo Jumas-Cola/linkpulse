@@ -20,7 +20,7 @@ class CheckOrchestrator(
     suspend fun runAllChecks() = coroutineScope {
         val semaphore = Semaphore(maxConcurrency)
 
-        urlRepo.findAllActive().map { url ->
+        urlRepo.findAllActive().filter { it.isDueForCheck() }.map { url ->
             async {
                 semaphore.withPermit {
                     checkSingle(url)

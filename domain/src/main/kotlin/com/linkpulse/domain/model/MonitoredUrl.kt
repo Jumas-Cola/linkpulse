@@ -14,12 +14,14 @@ data class MonitoredUrl(
     val owner: UserId,
     val currentStatus: UrlStatus = UrlStatus.UNKNOWN,
     val consecutiveFailures: Int = 0,
+    val lastCheckedAt: Instant? = null,
     val createdAt: Instant = Clock.System.now()
 ) {
     fun applyCheck(result: CheckResult): Pair<MonitoredUrl, DomainEvent?> {
         val newStatus = result.deriveStatus()
         val event = detectTransition(currentStatus, newStatus)
         return copy(
+            lastCheckedAt = Clock.System.now(),
             currentStatus = newStatus,
             consecutiveFailures = if (newStatus == UrlStatus.UP) 0 else consecutiveFailures + 1
         ) to event
@@ -29,5 +31,11 @@ data class MonitoredUrl(
         old == UrlStatus.UP && new == UrlStatus.DOWN   -> UrlWentDown(id!!.value, url, Clock.System.now())
         old == UrlStatus.DOWN && new == UrlStatus.UP   -> UrlRecovered(id!!.value, url, Clock.System.now())
         else -> null
+    }
+
+    fun isDueForCheck(): Boolean {
+        if (lastCheckedAt == null) return true
+        val elapsed = Clock.System.now().minus(lastCheckedAt)
+        return elapsed.inWholeSeconds >= intervalSeconds
     }
 }

@@ -21,7 +21,7 @@ class UserService(
 
         return userRepo.save(
             User(
-                id = UserId(0),
+                id = null,
                 username = username,
                 password = passwordHasher.hash(password)
             )

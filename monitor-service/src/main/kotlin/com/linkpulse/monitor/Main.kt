@@ -1,6 +1,7 @@
 package com.linkpulse.monitor
 
 import com.linkpulse.monitor.di.appModule
+import com.linkpulse.monitor.scheduler.CheckSchedulerVerticle
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -13,10 +14,13 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.PubSecKeyOptions
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.auth.jwt.JWTAuthOptions
+import io.vertx.ext.web.client.WebClient
+import io.vertx.ext.web.client.WebClientOptions
 import io.vertx.kotlin.coroutines.coAwait
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.koin.core.context.startKoin
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 private val logger = KotlinLogging.logger {}
@@ -69,9 +73,31 @@ suspend fun main() {
             )
         )
 
-        startKoin { modules(appModule, module { single { jwtAuth } }) }
+        val webClient = WebClient.create(vertx, WebClientOptions()
+            .setVerifyHost(false)
+            .setDefaultPort(443)
+            .setDefaultHost("")
+        )
 
-        // TODO: задеплоить CheckSchedulerVerticle
+        val checkerTimeout = config.getJsonObject("checker")?.getLong("timeoutMs") ?: 10_000L
+        val maxConcurrency = config.getJsonObject("checker")?.getInteger("maxConcurrency") ?: 20
+        val checkInterval = config.getJsonObject("checker")?.getLong("intervalMs") ?: 60_000L
+
+        startKoin {
+            modules(
+                appModule,
+                module {
+                    single { vertx }
+                    single { jwtAuth }
+                    single { webClient }
+                    single(named("maxConcurrency")) { maxConcurrency }
+                    single(named("checker.intervalMs")) { checkInterval }
+                    single { checkerTimeout }
+                }
+            )
+        }
+
+        vertx.deployVerticle(CheckSchedulerVerticle())
         vertx.deployVerticle(ApiVerticle()).coAwait()
         logger.info { "✅ monitor-service started on port 8080" }
     } catch (e: Exception) {

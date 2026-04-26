@@ -10,5 +10,6 @@ object MonitoredUrlsTable : LongIdTable("monitored_urls") {
     val ownerId             = long("owner_id").references(UsersTable.id)
     val currentStatus       = varchar("current_status", 16).default("UNKNOWN")
     val consecutiveFailures = integer("consecutive_failures").default(0)
+    val lastCheckedAt       = timestampWithTimeZone("last_checked_at").nullable()
     val createdAt           = timestampWithTimeZone("created_at")
 }

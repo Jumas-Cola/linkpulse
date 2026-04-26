@@ -13,6 +13,8 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import java.time.OffsetDateTime
+import kotlin.time.Instant
 
 class ExposedUrlRepository : AbstractRepository(), UrlRepository {
     override suspend fun findById(id: UrlId): MonitoredUrl? =
@@ -67,6 +69,9 @@ class ExposedUrlRepository : AbstractRepository(), UrlRepository {
                 MonitoredUrlsTable.update({ MonitoredUrlsTable.id eq url.id!!.value }) {
                     it[currentStatus] = url.currentStatus.name
                     it[consecutiveFailures] = url.consecutiveFailures
+                    it[lastCheckedAt] = url.lastCheckedAt?.let { 
+                        OffsetDateTime.ofInstant(java.time.Instant.ofEpochMilli(it.toEpochMilliseconds()), java.time.ZoneOffset.UTC)
+                    }
                 }
                 url
             }
@@ -86,5 +91,8 @@ class ExposedUrlRepository : AbstractRepository(), UrlRepository {
             owner = UserId(this[MonitoredUrlsTable.ownerId]),
             currentStatus = UrlStatus.valueOf(this[MonitoredUrlsTable.currentStatus]),
             consecutiveFailures = this[MonitoredUrlsTable.consecutiveFailures],
+            lastCheckedAt = this[MonitoredUrlsTable.lastCheckedAt]?.toInstant()?.let { 
+                        Instant.fromEpochMilliseconds(it.toEpochMilli()) 
+                    },
         )
 }
