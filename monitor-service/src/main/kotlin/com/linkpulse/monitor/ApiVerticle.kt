@@ -31,6 +31,38 @@ class ApiVerticle : CoroutineVerticle(), KoinComponent {
 
         router.route().handler(BodyHandler.create())
 
+        // ── Serve OpenAPI spec ──
+        router.get("/openapi.yaml").handler { ctx ->
+            ctx.response()
+                .putHeader("Content-Type", "application/yaml")
+                .sendFile("openapi.yaml")
+        }
+
+        // ── Swagger UI ──
+        router.get("/swagger-ui").handler { ctx ->
+            ctx.response()
+                .putHeader("Content-Type", "text/html; charset=utf-8")
+                .end("""
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>LinkPulse API - Swagger UI</title>
+                        <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css">
+                    </head>
+                    <body>
+                        <div id="swagger-ui"></div>
+                        <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js"></script>
+                        <script>
+                            SwaggerUIBundle({
+                                url: '/openapi.yaml',
+                                dom_id: '#swagger-ui'
+                            });
+                        </script>
+                    </body>
+                    </html>
+                """.trimIndent())
+        }
+
         // ── Health check ──
         router.get("/health").handler { ctx ->
             ctx.response()
@@ -38,12 +70,12 @@ class ApiVerticle : CoroutineVerticle(), KoinComponent {
                 .end("""{"status":"UP"}""")
         }
 
-        // ── Auth (публичные маршруты — до JWT middleware) ──
+        // ── Auth (public routes) ──
         val authHandler = AuthHandler(userRegistrar, userLoginer, jwtAuth, this)
         router.post("/api/auth/register").handler(authHandler::register)
         router.post("/api/auth/login").handler(authHandler::login)
 
-        // ── JWT middleware (защищает все /api/* маршруты ниже) ──
+        // ── JWT middleware (protects /api/* below) ──
         router.route("/api/*")
             .handler(JWTAuthHandler.create(jwtAuth))
             .handler { ctx ->
@@ -65,5 +97,6 @@ class ApiVerticle : CoroutineVerticle(), KoinComponent {
             .coAwait()
 
         logger.info { "HTTP server listening on port 8080" }
+        logger.info { "Swagger UI available at http://localhost:8080/swagger-ui" }
     }
 }

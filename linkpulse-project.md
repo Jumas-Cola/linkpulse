@@ -365,9 +365,9 @@ GET    /api/dashboard            # → сводка: сколько UP/DOWN/DEGR
   - [v] URL CRUD: `GET /api/urls`, `POST /api/urls`, `GET /api/urls/{id}`, `DELETE /api/urls/{id}` → `MonitoringService`
   - [v] History: `GET /api/urls/{id}/history` с `limit`/`offset` из query params
   - [v] DI: передать `MonitoringService`, `UserRepository`, `JWTAuth` в `ApiVerticle` через конструктор; задеплоить из `Main.kt`
-- [ ] `VertxHealthChecker` — реализация на WebClient с корутинами
-- [ ] `CheckSchedulerVerticle` — периодический запуск проверок
-- [ ] OpenAPI-спецификация (ручная или через `vertx-web-openapi`)
+- [v] `VertxHealthChecker` — реализация на WebClient с корутинами
+- [v] `CheckSchedulerVerticle` — периодический запуск проверок
+- [v] OpenAPI-спецификация (ручная или через `vertx-web-openapi`)
 - [ ] Интеграционные тесты: Testcontainers + PostgreSQL, тест полного цикла проверки
 - [ ] Dockerfile для `monitor-service` (multi-stage build)
 

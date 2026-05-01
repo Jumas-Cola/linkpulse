@@ -15,6 +15,7 @@ dependencies {
     implementation("io.vertx:vertx-core:${property("vertxVersion")}")
     implementation("io.vertx:vertx-web:${property("vertxVersion")}")
     implementation("io.vertx:vertx-web-client:${property("vertxVersion")}")
+    implementation("io.vertx:vertx-openapi:${property("vertxVersion")}")
     implementation("io.vertx:vertx-config:${property("vertxVersion")}")
     implementation("io.vertx:vertx-config-hocon:${property("vertxVersion")}")
 
